@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct HookIn {
     /// Expected Content-Type header value
     pub content_type: String,
@@ -10,7 +10,7 @@ pub struct HookIn {
     pub secret_256: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct HookOut {
     /// Where to forward the webhook to
     pub href: String,
@@ -18,7 +18,7 @@ pub struct HookOut {
     pub secret_256: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Hook {
     /// Incoming webhook
     pub r#in: HookIn,
@@ -26,12 +26,15 @@ pub struct Hook {
     pub out: Vec<HookOut>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Config {
     /// Hostname to listen on
     pub host: String,
     /// Port to listen on
     pub port: u16,
+    /// Whether the server is behind a reverse proxy
+    #[serde(default)]
+    pub behind_proxy: bool,
     /// FQDN+PATH -> Hook
     pub hooks: HashMap<String, Hook>,
 }
