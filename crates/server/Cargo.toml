@@ -6,5 +6,5 @@ edition = "2021"
 [dependencies]
 mighty-hooks-config = { path = "../config" }
 mighty-hooks-core = { path = "../core" }
-actix-web = { version = "4.3" }
+actix-web = { version = "4.3", features = ["rustls"] }
 log = "0.4"

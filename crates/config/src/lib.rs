@@ -27,11 +27,21 @@ pub struct Hook {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct HttpsConfig {
+    /// Path to the certificate file
+    pub cert: String,
+    /// Path to the private key file (in PKCS8 format)
+    pub key: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Config {
     /// Hostname to listen on
     pub host: String,
     /// Port to listen on
     pub port: u16,
+    // Setup HTTPS for the server
+    pub https: Option<HttpsConfig>,
     /// Whether the server is behind a reverse proxy
     #[serde(default)]
     pub behind_proxy: bool,

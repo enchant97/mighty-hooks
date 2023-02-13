@@ -1,7 +1,7 @@
 use actix_web::{middleware, HttpResponse};
 use actix_web::{middleware::Logger, post, web, App, HttpRequest, HttpServer};
 use mighty_hooks_config::Config;
-use mighty_hooks_core::signing::verify_hmac_sha256;
+use mighty_hooks_core::{signing::verify_hmac_sha256, tls::load_rustls_config};
 
 /// Make domain + path from request data
 fn get_in_path(path: String, request: &HttpRequest) -> Option<String> {
@@ -135,17 +135,28 @@ async fn post_webhook(
 
 pub async fn run_server(config: &Config) {
     let config = config.clone();
+    let https_config = config.https.clone();
     let bind = (config.host.to_owned(), config.port);
-    HttpServer::new(move || {
+    // Create server
+    let server = HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
             .wrap(middleware::DefaultHeaders::new().add(("Server", "Mighty Hooks")))
             .app_data(web::Data::new(config.clone()))
             .service(post_webhook)
-    })
-    .bind(bind)
-    .expect("Failed to bind to address")
-    .run()
-    .await
-    .expect("Failed to run server");
+    });
+    // Bind to address & port using either http or https
+    let bound_server = match https_config {
+        Some(https_config) => {
+            let cert_config = load_rustls_config(&https_config.cert, &https_config.key);
+            server.bind_rustls(bind, cert_config)
+        }
+        None => server.bind(bind),
+    };
+    // Run server
+    bound_server
+        .expect("Failed to bind to address")
+        .run()
+        .await
+        .expect("Failed to run server");
 }
