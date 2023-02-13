@@ -1,6 +1,7 @@
 use actix_web::{middleware, HttpResponse};
 use actix_web::{middleware::Logger, post, web, App, HttpRequest, HttpServer};
 use mighty_hooks_config::Config;
+use mighty_hooks_core::signing::verify_hmac_sha256;
 
 /// Make domain + path from request data
 fn get_in_path(path: String, request: &HttpRequest) -> Option<String> {
@@ -41,11 +42,22 @@ fn get_content_type(request: &HttpRequest) -> Option<String> {
     }
 }
 
+fn get_signature_256(request: &HttpRequest) -> Option<String> {
+    match request.headers().get("X-Hub-Signature-256") {
+        Some(signature) => match signature.is_empty() {
+            true => None,
+            false => Some(signature.to_str().unwrap().to_string()),
+        },
+        None => None,
+    }
+}
+
 #[post("/{path:.*}")]
 async fn post_webhook(
     config: web::Data<Config>,
     path: web::Path<String>,
     request: HttpRequest,
+    body: web::Bytes,
 ) -> HttpResponse {
     // Get the path from the request data ensuring it is valid
     let in_path = match get_in_path(path.into_inner(), &request) {
@@ -93,6 +105,29 @@ async fn post_webhook(
             return HttpResponse::BadRequest().finish();
         }
     };
+    // Validate signature-256 if enabled
+    if let Some(secret_256) = &hook.r#in.secret_256 {
+        match get_signature_256(&request) {
+            Some(signature) => {
+                if !verify_hmac_sha256(secret_256, &body, &signature) {
+                    log::info!(
+                        "{} trigged hook \"{}\" with invalid signature",
+                        client_ip,
+                        in_path
+                    );
+                    return HttpResponse::BadRequest().finish();
+                }
+            }
+            None => {
+                log::info!(
+                    "{} trigged hook \"{}\" without signature",
+                    client_ip,
+                    in_path
+                );
+                return HttpResponse::BadRequest().finish();
+            }
+        };
+    }
 
     log::info!("{} trigged hook successfully \"{}\"", client_ip, in_path);
     HttpResponse::NoContent().finish()
