@@ -1,0 +1,12 @@
+[package]
+name = "mighty-hooks"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+members = [
+    "crates/*",
+]
+
+[dependencies]
+mighty-hooks-config = { path = "./crates/config" }
