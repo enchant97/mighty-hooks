@@ -11,6 +11,7 @@ members = [
 [dependencies]
 mighty-hooks-config = { path = "./crates/config" }
 mighty-hooks-server = { path = "./crates/server" }
-tokio = { version = "1.25", features=["macros", "rt-multi-thread"] }
+tokio = { version = "1.25", features = ["macros", "rt-multi-thread"] }
+clap = { version = "^4.1.4", features = ["derive"] }
 log = "0.4"
 env_logger = "0.10"
