@@ -3,17 +3,20 @@ use actix_web::{middleware::Logger, post, web, App, HttpRequest, HttpServer};
 use mighty_hooks_config::Config;
 use mighty_hooks_core::{signing::verify_hmac_sha256, tls::load_rustls_config};
 
+/// Get the value of a header from the request, validating it is not empty
+fn get_header_value(request: &HttpRequest, key: &str) -> Option<String> {
+    match request.headers().get(key) {
+        Some(value) => match value.is_empty() {
+            true => None,
+            false => Some(value.to_str().unwrap().to_string()),
+        },
+        None => None,
+    }
+}
+
 /// Make domain + path from request data
 fn get_in_path(path: String, request: &HttpRequest) -> Option<String> {
-    let host = match request.headers().get("Host") {
-        Some(host) => match host.is_empty() {
-            true => return None,
-            false => host.to_str().unwrap(),
-        },
-        None => {
-            return None;
-        }
-    };
+    let host = get_header_value(request, "Host")?;
     Some(format!("{}/{}", host, path))
 }
 
@@ -31,25 +34,10 @@ fn get_client_ip(behind_proxy: bool, request: &HttpRequest) -> Option<String> {
     }
 }
 
-/// Get the content type from the request validating it is not empty
-fn get_content_type(request: &HttpRequest) -> Option<String> {
-    match request.headers().get("Content-Type") {
-        Some(content_type) => match content_type.is_empty() {
-            true => None,
-            false => Some(content_type.to_str().unwrap().to_string()),
-        },
-        None => None,
-    }
-}
-
+/// Get the signature-256 from the request headers
 fn get_signature_256(request: &HttpRequest) -> Option<String> {
-    match request.headers().get("X-Hub-Signature-256") {
-        Some(signature) => match signature.is_empty() {
-            true => None,
-            false => Some(signature.to_str().unwrap().to_string()),
-        },
-        None => None,
-    }
+    let value = get_header_value(request, "X-Hub-Signature-256")?;
+    value.strip_prefix("sha256=").map(|s| s.to_string())
 }
 
 #[post("/{path:.*}")]
@@ -84,7 +72,7 @@ async fn post_webhook(
         }
     };
     // Validate content type
-    match get_content_type(&request) {
+    match get_header_value(&request, "Content-Type") {
         Some(content_type) => {
             if content_type != hook.r#in.content_type {
                 log::info!(
