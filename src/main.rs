@@ -1,23 +1,29 @@
 use clap::Parser;
-use mighty_hooks_config::Config;
+use mighty_hooks_config::{Config, EnvVarConfig};
 use mighty_hooks_server::run_server;
 
 mod args;
 
 /// Load config from file, return config and path to config file
-fn read_config() -> (Config, String) {
-    let config_path =
-        std::env::var("MIGHTY_HOOKS_CONFIG_PATH").unwrap_or_else(|_| "config.yaml".to_owned());
+fn read_config(env_config: &EnvVarConfig) -> (Config, String) {
+    let config_path = env_config
+        .config_path
+        .clone()
+        .unwrap_or_else(|| "config.yaml".to_owned());
     let config = Config::from_yaml_file(&config_path).expect("Failed to load config file");
     (config, config_path)
 }
 
 #[tokio::main]
 pub async fn main() {
+    let env_config = EnvVarConfig::from_env().expect("Failed to load config from env vars");
     // Setup logging
     std::env::set_var(
         "RUST_LOG",
-        std::env::var("MIGHTY_HOOKS_LOG_LEVEL").unwrap_or_else(|_| log::Level::Info.to_string()),
+        env_config
+            .log_level
+            .clone()
+            .unwrap_or_else(|| log::Level::Info.to_string()),
     );
     env_logger::init();
 
@@ -25,7 +31,7 @@ pub async fn main() {
     match args.cmd {
         args::Command::Serve => {
             // Load config
-            let (config, config_path) = read_config();
+            let (config, config_path) = read_config(&env_config);
             log::info!("Loading config from '{}'", &config_path);
             log::debug!("config = {:#?}", &config);
             // log listening address
@@ -40,12 +46,12 @@ pub async fn main() {
         }
         args::Command::Config(config_args) => match config_args.cmd {
             args::ConfigCommand::Show => {
-                let (config, config_path) = read_config();
+                let (config, config_path) = read_config(&env_config);
                 log::info!("Loading config from '{}'", &config_path);
                 println!("{:#?}", &config);
             }
             args::ConfigCommand::Find => {
-                let (_, config_path) = read_config();
+                let (_, config_path) = read_config(&env_config);
                 println!("{}", &config_path);
             }
         },

@@ -3,6 +3,18 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct EnvVarConfig {
+    pub log_level: Option<String>,
+    pub config_path: Option<String>,
+}
+
+impl EnvVarConfig {
+    pub fn from_env() -> Result<Self, envy::Error> {
+        envy::prefixed("MIGHTY_HOOKS_").from_env()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct HookIn {
     /// Expected Content-Type header value
     pub content_type: String,
