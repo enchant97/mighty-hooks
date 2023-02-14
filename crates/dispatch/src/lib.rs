@@ -3,8 +3,16 @@ use mighty_hooks_core::Body;
 use std::collections::HashMap;
 
 use mighty_hooks_config::HookOut;
-use reqwest::header::{HeaderMap, HeaderName};
+use reqwest::{
+    header::{HeaderMap, HeaderName},
+    redirect::Policy,
+};
 
+static USER_AGENT: &str = concat!(
+    "MightyHooks/",
+    env!("CARGO_PKG_VERSION"),
+    " (+https://github.com/enchant97/mighty-hooks)"
+);
 
 fn headers_convert(headers: &HashMap<String, String>) -> HeaderMap {
     let mut header_map = HeaderMap::new();
@@ -27,7 +35,11 @@ pub struct Dispatcher {
 impl Dispatcher {
     pub fn new() -> Self {
         Self {
-            client: reqwest::Client::new(),
+            client: reqwest::Client::builder()
+                .user_agent(USER_AGENT)
+                .redirect(Policy::none())
+                .build()
+                .expect("failed to build client for webhook dispatcher"),
         }
     }
 
