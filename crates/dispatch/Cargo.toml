@@ -8,5 +8,4 @@ mighty-hooks-config = { path = "../config" }
 mighty-hooks-core = { path = "../core" }
 log = "0.4"
 reqwest = "^0.11.14"
-bytes = "^1.4.0"
 futures = "^0.3.26"

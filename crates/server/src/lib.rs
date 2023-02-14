@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use actix_web::{middleware, HttpResponse};
 use actix_web::{middleware::Logger, post, web, App, HttpRequest, HttpServer};
 use mighty_hooks_config::Config;
+use mighty_hooks_core::Body;
 use mighty_hooks_core::{signing::verify_hmac_sha256, tls::load_rustls_config};
 use mighty_hooks_dispatch::Dispatcher;
 
@@ -133,11 +134,16 @@ async fn post_webhook(
     // Extract all headers from the request
     let headers = extract_headers(&request);
     // Send request to all hooks
-    dispatcher.dispatch_hooks(
-        &hook.out,
-        body,
-        headers,
-    ).await;
+    dispatcher
+        .dispatch_hooks(
+            &hook.out,
+            Body {
+                content: body,
+                content_type: hook.r#in.content_type.clone(),
+            },
+            headers,
+        )
+        .await;
 
     HttpResponse::NoContent().finish()
 }
