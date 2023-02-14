@@ -1,11 +1,12 @@
 [package]
-name = "mighty-hooks-server"
+name = "mighty-hooks-dispatch"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 mighty-hooks-config = { path = "../config" }
 mighty-hooks-core = { path = "../core" }
-mighty-hooks-dispatch = { path = "../dispatch" }
-actix-web = { version = "4.3", features = ["rustls"] }
 log = "0.4"
+reqwest = "^0.11.14"
+bytes = "^1.4.0"
+futures = "^0.3.26"

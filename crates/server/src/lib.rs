@@ -1,7 +1,10 @@
+use std::collections::HashMap;
+
 use actix_web::{middleware, HttpResponse};
 use actix_web::{middleware::Logger, post, web, App, HttpRequest, HttpServer};
 use mighty_hooks_config::Config;
 use mighty_hooks_core::{signing::verify_hmac_sha256, tls::load_rustls_config};
+use mighty_hooks_dispatch::Dispatcher;
 
 /// Get the value of a header from the request, validating it is not empty
 fn get_header_value(request: &HttpRequest, key: &str) -> Option<String> {
@@ -40,9 +43,19 @@ fn get_signature_256(request: &HttpRequest) -> Option<String> {
     value.strip_prefix("sha256=").map(|s| s.to_string())
 }
 
+/// Extract all headers from the request into a HashMap
+fn extract_headers(request: &HttpRequest) -> HashMap<String, String> {
+    let mut headers = HashMap::new();
+    for (key, value) in request.headers() {
+        headers.insert(key.to_string(), value.to_str().unwrap().to_string());
+    }
+    headers
+}
+
 #[post("/{path:.*}")]
 async fn post_webhook(
     config: web::Data<Config>,
+    dispatcher: web::Data<Dispatcher>,
     path: web::Path<String>,
     request: HttpRequest,
     body: web::Bytes,
@@ -116,8 +129,16 @@ async fn post_webhook(
             }
         };
     }
-
     log::info!("{} trigged hook successfully \"{}\"", client_ip, in_path);
+    // Extract all headers from the request
+    let headers = extract_headers(&request);
+    // Send request to all hooks
+    dispatcher.dispatch_hooks(
+        &hook.out,
+        body,
+        headers,
+    ).await;
+
     HttpResponse::NoContent().finish()
 }
 
@@ -131,6 +152,7 @@ pub async fn run_server(config: &Config) {
             .wrap(Logger::default())
             .wrap(middleware::DefaultHeaders::new().add(("Server", "Mighty Hooks")))
             .app_data(web::Data::new(config.clone()))
+            .app_data(web::Data::new(Dispatcher::new()))
             .service(post_webhook)
     });
     // Bind to address & port using either http or https

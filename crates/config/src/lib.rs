@@ -28,6 +28,12 @@ pub struct HookOut {
     pub href: String,
     /// Secret for HMAC x-hub-signature-256
     pub secret_256: Option<String>,
+    /// Headers to keep from the incoming request
+    /// - all others will be dropped
+    /// - case-insensitive
+    /// - `x-hub-signature` and `x-hub-signature-256` will always be removed
+    #[serde(default)]
+    pub keep_headers: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
