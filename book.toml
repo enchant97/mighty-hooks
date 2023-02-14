@@ -1,0 +1,17 @@
+[book]
+authors = ["Leo Spratt"]
+language = "en"
+multilingual = false
+src = "docs"
+title = "Mighty Hooks"
+
+[build]
+build-dir = "site"
+
+[output.html]
+git-repository-url = "https://github.com/enchant97/mighty-hooks"
+git-repository-icon = "fa-github"
+edit-url-template = "https://github.com/enchant97/mighty-hooks/edit/main/{path}"
+site-url = "/mighty-hooks/"
+preferred-dark-theme = "coal"
+no-section-label = true
