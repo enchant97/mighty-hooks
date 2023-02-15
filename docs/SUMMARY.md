@@ -5,3 +5,4 @@
 
 - [Install](./install.md)
 - [Configuration](./config.md)
+- [Rewording](./rewording.md)
