@@ -11,11 +11,13 @@ A lightweight & fast stateless webhook relay server.
 - Configured via a single yaml file
 - Supports HMAC-256 validating and signing
 - Header extraction
+- Webhook rewording (receive one hook and send a different)
+  - Templating via [Tera](https://tera.netlify.app/)
+  - JSON body access in template
 - HTTPS support
 
 
 ## Future
-- Webhook transforming (receive one hook and send a different)
 - Authentication Bearer token support (both send & receive)
 
 
