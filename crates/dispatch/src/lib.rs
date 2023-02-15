@@ -2,11 +2,13 @@ use futures::future::join_all;
 use mighty_hooks_core::Body;
 use std::collections::HashMap;
 
-use mighty_hooks_config::HookOut;
+use mighty_hooks_config::{HookOut, HookRewordDeserializeAs};
 use reqwest::{
     header::{HeaderMap, HeaderName},
     redirect::Policy,
 };
+
+mod reword;
 
 static USER_AGENT: &str = concat!(
     "MightyHooks/",
@@ -44,13 +46,11 @@ impl Dispatcher {
     }
 
     async fn dispatch(&self, to_dispatch: ToDispatch) {
-        // FIXME unwrap usage
         match self
             .client
             .post(to_dispatch.href.clone())
             .body(to_dispatch.body.content)
             .headers(headers_convert(&to_dispatch.headers))
-            .header("Content-Type", to_dispatch.body.content_type)
             .send()
             .await
         {
@@ -75,10 +75,43 @@ impl Dispatcher {
                 format!("sha256={}", signature),
             );
         }
-        let to_dispatch = ToDispatch {
-            href: hook.href.clone(),
-            body,
-            headers,
+        // reword the body if needed
+        let to_dispatch = match &hook.reword {
+            Some(reword) => {
+                // reword body and set the new content type
+                let content_type = match reword.deserialize_as {
+                    HookRewordDeserializeAs::JsonObject | HookRewordDeserializeAs::JsonArray => {
+                        "application/json"
+                    }
+                    HookRewordDeserializeAs::PlainText => "text/plain",
+                };
+                headers.insert("Content-Type".to_string(), content_type.to_string());
+                // reword the body
+                let reworded_body = match reword::reword_body(reword, &body.content, &headers) {
+                    Ok(v) => v,
+                    Err(err) => {
+                        log::error!("failed to reword body: {:?}", err);
+                        return;
+                    }
+                };
+                ToDispatch {
+                    href: hook.href.clone(),
+                    body: Body {
+                        content: reworded_body.into(),
+                        content_type: content_type.to_string(),
+                    },
+                    headers,
+                }
+            }
+            None => {
+                // no rewording, just use the original body and content type
+                headers.insert("Content-Type".to_string(), body.content_type.clone());
+                ToDispatch {
+                    href: hook.href.clone(),
+                    body,
+                    headers,
+                }
+            }
         };
         // send the actual request
         self.dispatch(to_dispatch).await;

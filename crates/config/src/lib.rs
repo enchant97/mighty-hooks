@@ -23,6 +23,27 @@ pub struct HookIn {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum HookRewordDeserializeAs {
+    /// Deserialization from a JSON object
+    #[serde(rename = "json_object")]
+    JsonObject,
+    /// Deserialization from a JSON array
+    #[serde(rename = "json_array")]
+    JsonArray,
+    /// No deserialization (body is treated as plain text)
+    #[serde(rename = "plain_text")]
+    PlainText,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct HookReword {
+    /// How to treat the input body for giving value(s) to template
+    pub deserialize_as: HookRewordDeserializeAs,
+    /// New body content, allowing for a tera template to be used
+    pub content: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct HookOut {
     /// Where to forward the webhook to
     pub href: String,
@@ -34,6 +55,8 @@ pub struct HookOut {
     /// - `x-hub-signature` and `x-hub-signature-256` will always be removed
     #[serde(default)]
     pub keep_headers: Vec<String>,
+    /// Optionally reword (alter hook output) the body
+    pub reword: Option<HookReword>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
