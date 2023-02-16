@@ -62,4 +62,7 @@ hooks:
                 "secret-stat": "{{ content.json["stat"] }}",
                 "user-agent": "{{ content.headers["user-agent"] }}"
             }
+          # ~ Manually set extra headers
+          set_headers:
+            is_awesome: "true"
 ```

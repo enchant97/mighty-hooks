@@ -89,6 +89,8 @@ impl Dispatcher {
                         return;
                     }
                 };
+                // reword headers
+                headers.extend(reword.set_headers.clone());
                 ToDispatch {
                     href: hook.href.clone(),
                     body: Body {

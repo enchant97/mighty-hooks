@@ -28,6 +28,9 @@ pub struct HookReword {
     pub content_type: String,
     /// New body content, with tera templating
     pub content: String,
+    /// Headers to add to new request
+    #[serde(default)]
+    pub set_headers: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
