@@ -14,6 +14,7 @@ A lightweight & fast stateless webhook relay server.
 - Webhook rewording (receive one hook and send a different)
   - Templating via [Tera](https://tera.netlify.app/)
   - JSON body access in template
+  - Add headers
 - HTTPS support
 
 
