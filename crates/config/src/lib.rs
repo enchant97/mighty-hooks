@@ -25,7 +25,8 @@ pub struct HookIn {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct HookReword {
     /// New body content type
-    pub content_type: String,
+    /// - If not set, will use the same as the incoming request
+    pub content_type: Option<String>,
     /// New body content, with tera templating
     pub content: String,
     /// Headers to add to new request

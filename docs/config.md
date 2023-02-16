@@ -53,7 +53,8 @@ hooks:
         keep_headers: ["x-example-header"]
         # ~ Set new body of webhook
         reword:
-          # Content type of output
+          # ~ Content type of output
+          # if unset use original content_type
           content_type: "application/json"
           # The new content to set for body, supporting tera templating
           content: |

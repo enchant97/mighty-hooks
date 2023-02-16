@@ -79,8 +79,13 @@ impl Dispatcher {
         let to_dispatch = match &hook.reword {
             Some(reword) => {
                 // reword body and set the new content type
-                // set content type
-                headers.insert("Content-Type".to_string(), reword.content_type.clone());
+                // set the new content type
+                // or use the original content type
+                let reword_content_type = reword
+                    .content_type
+                    .clone()
+                    .unwrap_or_else(|| body.content_type.clone());
+                headers.insert("Content-Type".to_string(), reword_content_type.clone());
                 // reword the body
                 let reworded_body = match reword::reword_body(reword, &body, &headers) {
                     Ok(v) => v,
@@ -95,7 +100,7 @@ impl Dispatcher {
                     href: hook.href.clone(),
                     body: Body {
                         content: reworded_body.into(),
-                        content_type: reword.content_type.clone(),
+                        content_type: reword_content_type,
                     },
                     headers,
                 }
