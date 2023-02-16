@@ -23,20 +23,10 @@ pub struct HookIn {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum HookRewordDeserializeAs {
-    /// Deserialization from JSON
-    #[serde(rename = "json")]
-    Json,
-    /// No deserialization (body is treated as plain text)
-    #[serde(rename = "plain_text")]
-    PlainText,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct HookReword {
-    /// How to treat the input body for giving value(s) to template
-    pub deserialize_as: HookRewordDeserializeAs,
-    /// New body content, allowing for a tera template to be used
+    /// New body content type
+    pub content_type: String,
+    /// New body content, with tera templating
     pub content: String,
 }
 

@@ -2,7 +2,7 @@ use futures::future::join_all;
 use mighty_hooks_core::Body;
 use std::collections::HashMap;
 
-use mighty_hooks_config::{HookOut, HookRewordDeserializeAs};
+use mighty_hooks_config::HookOut;
 use reqwest::{
     header::{HeaderMap, HeaderName},
     redirect::Policy,
@@ -79,15 +79,10 @@ impl Dispatcher {
         let to_dispatch = match &hook.reword {
             Some(reword) => {
                 // reword body and set the new content type
-                let content_type = match reword.deserialize_as {
-                    HookRewordDeserializeAs::Json => {
-                        "application/json"
-                    }
-                    HookRewordDeserializeAs::PlainText => "text/plain",
-                };
-                headers.insert("Content-Type".to_string(), content_type.to_string());
+                // set content type
+                headers.insert("Content-Type".to_string(), reword.content_type.clone());
                 // reword the body
-                let reworded_body = match reword::reword_body(reword, &body.content, &headers) {
+                let reworded_body = match reword::reword_body(reword, &body, &headers) {
                     Ok(v) => v,
                     Err(err) => {
                         log::error!("failed to reword body: {:?}", err);
@@ -98,7 +93,7 @@ impl Dispatcher {
                     href: hook.href.clone(),
                     body: Body {
                         content: reworded_body.into(),
-                        content_type: content_type.to_string(),
+                        content_type: reword.content_type.clone(),
                     },
                     headers,
                 }

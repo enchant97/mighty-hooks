@@ -35,7 +35,8 @@ hooks:
   hooks.example.com/hello:
     # Define settings for receiving
     in:
-      # Expected content type to receive
+      # Expected content type to receive,
+      # also controls available content values in reword template
       content_type: "application/json"
       # ~ Validate a `x-hub-signature-256` signed webhook
       secret_256: "my_secret"
@@ -52,15 +53,13 @@ hooks:
         keep_headers: ["x-example-header"]
         # ~ Set new body of webhook
         reword:
-          # Deserialize body for use in body template
-          # - json -> JSON
-          # - plain_text -> Just text, will not deserialize
-          deserialize_as: "json_object"
+          # Content type of output
+          content_type: "application/json"
           # The new content to set for body, supporting tera templating
           content: |
             {
                 "message": "Hello World!",
-                "secret-stat": "{{ json["stat"] }}",
-                "user-agent": "{{ headers["user-agent"] }}"
+                "secret-stat": "{{ content.json["stat"] }}",
+                "user-agent": "{{ content.headers["user-agent"] }}"
             }
 ```

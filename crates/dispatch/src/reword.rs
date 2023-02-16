@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use mighty_hooks_config::{HookReword, HookRewordDeserializeAs};
+use mighty_hooks_config::HookReword;
+use mighty_hooks_core::Body;
 use serde::Serialize;
 
 #[derive(Debug)]
@@ -23,19 +24,19 @@ fn deserialize_json(content: &[u8]) -> Result<serde_json::Value, RewordErrors> {
 
 pub fn reword_body(
     reword: &HookReword,
-    body: &[u8],
+    body: &Body,
     headers: &HashMap<String, String>,
 ) -> Result<String, RewordErrors> {
     let mut tera_context = tera::Context::new();
     // add content to the context for access in template
-    let content_context = ContentContext {
+    let mut content_context = ContentContext {
         headers: &headers,
-        raw: String::from_utf8(body.to_vec()).map_err(|_| RewordErrors::BodyMustBeText)?,
-        json: match reword.deserialize_as {
-            HookRewordDeserializeAs::Json => Some(deserialize_json(body)?),
-            _ => None,
-        },
+        raw: String::from_utf8(body.content.to_vec()).map_err(|_| RewordErrors::BodyMustBeText)?,
+        json: None,
     };
+    if body.content_type == "application/json" {
+        content_context.json = Some(deserialize_json(&body.content)?);
+    }
     tera_context.insert("content", &content_context);
     // render the template
     tera::Tera::one_off(&reword.content, &tera_context, false)
