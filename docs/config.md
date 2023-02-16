@@ -53,8 +53,7 @@ hooks:
         # ~ Set new body of webhook
         reword:
           # Deserialize body for use in body template
-          # - json_object -> A JSON object
-          # - json_array -> A JSON array
+          # - json -> JSON
           # - plain_text -> Just text, will not deserialize
           deserialize_as: "json_object"
           # The new content to set for body, supporting tera templating

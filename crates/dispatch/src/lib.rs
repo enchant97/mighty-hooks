@@ -80,7 +80,7 @@ impl Dispatcher {
             Some(reword) => {
                 // reword body and set the new content type
                 let content_type = match reword.deserialize_as {
-                    HookRewordDeserializeAs::JsonObject | HookRewordDeserializeAs::JsonArray => {
+                    HookRewordDeserializeAs::Json => {
                         "application/json"
                     }
                     HookRewordDeserializeAs::PlainText => "text/plain",

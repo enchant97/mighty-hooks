@@ -24,12 +24,9 @@ pub struct HookIn {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum HookRewordDeserializeAs {
-    /// Deserialization from a JSON object
-    #[serde(rename = "json_object")]
-    JsonObject,
-    /// Deserialization from a JSON array
-    #[serde(rename = "json_array")]
-    JsonArray,
+    /// Deserialization from JSON
+    #[serde(rename = "json")]
+    Json,
     /// No deserialization (body is treated as plain text)
     #[serde(rename = "plain_text")]
     PlainText,
