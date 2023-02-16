@@ -133,3 +133,9 @@ impl Dispatcher {
         join_all(to_dispatch).await;
     }
 }
+
+impl Default for Dispatcher {
+    fn default() -> Self {
+        Self::new()
+    }
+}

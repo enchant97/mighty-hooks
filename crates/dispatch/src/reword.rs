@@ -19,7 +19,7 @@ struct ContentContext<'a> {
 }
 
 fn deserialize_json(content: &[u8]) -> Result<serde_json::Value, RewordErrors> {
-    Ok(serde_json::from_slice(content).map_err(|_| RewordErrors::DeserializeBodyError)?)
+    serde_json::from_slice(content).map_err(|_| RewordErrors::DeserializeBodyError)
 }
 
 pub fn reword_body(
@@ -30,7 +30,7 @@ pub fn reword_body(
     let mut tera_context = tera::Context::new();
     // add content to the context for access in template
     let mut content_context = ContentContext {
-        headers: &headers,
+        headers,
         raw: String::from_utf8(body.content.to_vec()).map_err(|_| RewordErrors::BodyMustBeText)?,
         json: None,
     };

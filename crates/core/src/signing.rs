@@ -17,7 +17,7 @@ pub fn verify_hmac_sha256(secret: &str, data: &Bytes, signature_hex: &str) -> bo
             let key = hmac::Key::new(hmac::HMAC_SHA256, secret.as_bytes());
             hmac::verify(&key, data, &signature).is_ok()
         }
-        Err(_) => return false,
+        Err(_) => false,
     }
 }
 

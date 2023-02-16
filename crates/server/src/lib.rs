@@ -27,14 +27,14 @@ fn get_in_path(path: String, request: &HttpRequest) -> Option<String> {
 /// Get the real client ip from the request
 fn get_client_ip(behind_proxy: bool, request: &HttpRequest) -> Option<String> {
     match behind_proxy {
-        true => match request.connection_info().realip_remote_addr() {
-            Some(ip) => Some(ip.to_owned()),
-            None => None,
-        },
-        false => match request.connection_info().peer_addr() {
-            Some(ip) => Some(ip.to_owned()),
-            None => None,
-        },
+        true => request
+            .connection_info()
+            .realip_remote_addr()
+            .map(|ip| ip.to_owned()),
+        false => request
+            .connection_info()
+            .peer_addr()
+            .map(|ip| ip.to_owned()),
     }
 }
 
@@ -158,7 +158,7 @@ pub async fn run_server(config: &Config) {
             .wrap(Logger::default())
             .wrap(middleware::DefaultHeaders::new().add(("Server", "Mighty Hooks")))
             .app_data(web::Data::new(config.clone()))
-            .app_data(web::Data::new(Dispatcher::new()))
+            .app_data(web::Data::new(Dispatcher::default()))
             .service(post_webhook)
     });
     // Bind to address & port using either http or https
